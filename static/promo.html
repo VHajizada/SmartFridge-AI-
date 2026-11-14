@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="az"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SmartFridge AI – Promo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+:root{--cr:#f7f7f2;--gd:#1a3d30;--tc:#c47a5f;--mg:#6b8576;--g:#3fd88a;--ln:#e3e6df;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#000;font-family:'DM Sans',system-ui,sans-serif;overflow:hidden;user-select:none}
+body{display:grid;place-items:center;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+#stage{position:relative;width:min(100vw,177.78vh);aspect-ratio:16/9;container-type:inline-size;overflow:hidden;background:#050a07}
+.scene{position:absolute;inset:0;opacity:0;transition:opacity .8s;pointer-events:none}
+.scene.on{opacity:1}
+.hd1{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;letter-spacing:-.03em}
+.it{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400;color:var(--tc)}
+
+/* Paused state freezes CSS animations */
+#stage.paused * { animation-play-state: paused !important; }
+
+/* S1 kitchen */
+#s1{background:radial-gradient(60% 80% at 62% 55%,#3a3226,#120e0a 70%)}
+#s1 .cam{position:absolute;inset:0;animation:push 7s ease-in-out forwards}
+@keyframes push{from{transform:scale(1)}to{transform:scale(1.12) translateX(-2%)}}
+.fridge{position:absolute;left:44cqw;top:6cqw;width:30cqw;height:36cqw;border-radius:1cqw;background:#e9f2ee;box-shadow:0 0 12cqw 2cqw rgba(190,255,220,.35),inset 0 0 4cqw rgba(0,0,0,.25);padding:1.6cqw;display:flex;flex-direction:column;gap:1.2cqw}
+.shelf{flex:1;border-bottom:.5cqw solid #b9cdc4;display:flex;align-items:flex-end;justify-content:space-around;font-size:4.4cqw}
+.door{position:absolute;left:30cqw;top:5cqw;width:15cqw;height:38cqw;background:linear-gradient(90deg,#9db1a9,#d9e6e0);transform-origin:right;transform:perspective(60cqw) rotateY(58deg);border-radius:1cqw 0 0 1cqw}
+.person{position:absolute;left:14cqw;top:12cqw;width:14cqw;height:33cqw}
+.person i{position:absolute;display:block;background:#0b0907}
+.person .h{left:4.5cqw;top:0;width:5cqw;height:5.5cqw;border-radius:50%}
+.person .b{left:2cqw;top:5.5cqw;width:10cqw;height:17cqw;border-radius:5cqw 5cqw 1cqw 1cqw}
+.person .l{left:3cqw;top:22cqw;width:8cqw;height:11cqw}
+.bubble{position:absolute;left:9cqw;top:-2cqw;background:#fff;color:#111;padding:1cqw 1.8cqw;border-radius:2cqw;font-size:2.1cqw;font-weight:700;opacity:0;transition:opacity .6s;white-space:nowrap}
+.cap{position:absolute;left:5cqw;bottom:7cqw;font-size:4.2cqw;color:#fff;line-height:1.1;opacity:0;transform:translateY(1cqw);transition:all .8s}
+.in{opacity:1!important;transform:none!important}
+
+/* browser */
+#s2{background:radial-gradient(70% 90% at 50% 40%,#12301f,#050a07)}
+.win{position:absolute;left:5cqw;top:2.5cqw;width:90cqw;height:49cqw;background:var(--cr);border-radius:1cqw;box-shadow:0 4cqw 12cqw rgba(0,0,0,.7),0 0 8cqw rgba(63,216,138,.2);color:var(--gd);overflow:hidden}
+.bar{height:2.6cqw;background:#e6e8e0;display:flex;align-items:center;gap:.6cqw;padding:0 1.2cqw}
+.bar b{width:.8cqw;height:.8cqw;border-radius:50%;background:#bcc4b8}
+.bar span{margin-left:2cqw;background:#fff;border-radius:2cqw;padding:.25cqw 2cqw;font-size:1cqw;color:#667}
+.nv{height:4.6cqw;display:flex;align-items:center;justify-content:space-between;padding:0 6cqw;border-bottom:1px solid var(--ln)}
+.lg{display:flex;align-items:center;gap:.8cqw;font:700 1.7cqw 'Bricolage Grotesque'}
+.lg svg{width:2.6cqw;height:2.6cqw;padding:.5cqw;border:1px solid var(--ln);border-radius:.7cqw;background:#fff;stroke:var(--gd);fill:none;stroke-width:1.6}
+.lg em{font-style:normal;color:var(--tc)}
+.nl{font-size:1cqw;color:#44574d;display:flex;gap:2.4cqw}
+.bt{background:var(--gd);color:#fff;border-radius:.6cqw;padding:.9cqw 1.6cqw;font-weight:700;font-size:1.1cqw}
+.pg{position:absolute;left:0;right:0;top:7.2cqw;bottom:0;opacity:0;transition:opacity .5s}
+.pg.on{opacity:1}
+
+/* landing */
+.hero{position:absolute;left:6cqw;top:4.5cqw;width:38cqw}
+.lab{font-size:.8cqw;letter-spacing:.14em;color:var(--tc);font-weight:700;margin-bottom:1.4cqw}
+.hero h1{font-size:4.4cqw;line-height:1.02}
+.hero h1 span{color:var(--mg);display:block}
+.hero h1 .it{font-size:4.6cqw;display:block}
+.hero p{font-size:1.15cqw;line-height:1.9;color:#5a6b61;margin:1.4cqw 0}
+.sc{position:absolute;right:6cqw;top:1.5cqw;width:27cqw;height:35cqw;background:#fff;border-radius:1.4cqw;box-shadow:0 2cqw 6cqw rgba(26,61,48,.12);padding:2cqw}
+.sc h3{font:700 1.7cqw 'Bricolage Grotesque';margin:.5cqw 0 1.2cqw}
+.dz{height:15cqw;border:.15cqw dashed #b7c4b9;border-radius:.8cqw;display:grid;place-items:center;text-align:center;position:relative;overflow:hidden}
+.dz .ic{width:4cqw;height:4cqw;border-radius:1cqw;background:#e6efe8;margin:0 auto 1cqw;display:grid;place-items:center;font-size:1.8cqw}
+.dz b{font-size:1.1cqw}.dz small{display:block;font-size:.85cqw;color:#7a8a80;margin-top:.4cqw}
+.ph{position:absolute;inset:0;display:grid;grid:repeat(2,1fr)/repeat(4,1fr);background:linear-gradient(#f3f8f6,#dfeae5);opacity:0;transform:translate(8cqw,-8cqw) scale(.7);transition:all .8s cubic-bezier(.2,.8,.2,1)}
+.ph.in{opacity:1;transform:none}
+.ph span,.cell{display:grid;place-items:center;font-size:2.8cqw}
+.cn{font-size:.8cqw;color:#7a8a80;margin:1cqw 0}
+.bb{background:var(--gd);color:#fff;border-radius:.7cqw;padding:1cqw 1.4cqw;font-weight:700;font-size:1.15cqw;display:flex;justify-content:space-between;transition:transform .2s,box-shadow .3s}
+.bb.press{transform:scale(.96);box-shadow:0 0 4cqw var(--g)}
+
+/* stepper */
+.stp{display:flex;justify-content:center;align-items:center;gap:1cqw;margin:1.2cqw 0 1.4cqw;font-size:.85cqw;font-weight:700}
+.stp i{display:inline-grid;place-items:center;width:2.2cqw;height:2.2cqw;border-radius:50%;background:#d9dfd6;color:#fff;font-style:normal;margin-right:.6cqw}
+.stp i.a{background:var(--gd)}.stp u{width:4cqw;height:1px;background:var(--gd)}
+.stp span{display:flex;align-items:center}
+.card{margin:0 auto;background:#fff;border-radius:1.2cqw;box-shadow:0 2cqw 6cqw rgba(26,61,48,.1);padding:1.8cqw 2.4cqw}
+
+/* scan page */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:2.4cqw;width:62cqw}
+.im{height:23cqw;border-radius:1cqw;background:linear-gradient(#f3f8f6,#dfeae5);position:relative;overflow:hidden;display:grid;grid:repeat(2,1fr)/repeat(4,1fr)}
+.cell{position:relative;border-bottom:.3cqw solid #c5d6cd;font-size:4cqw}
+.cell:nth-child(n+5){border:0}
+.cell u{position:absolute;inset:10%;border:.2cqw solid var(--g);border-radius:.8cqw;box-shadow:0 0 1.8cqw var(--g),inset 0 0 1.2cqw rgba(63,216,138,.45);opacity:0;transition:opacity .4s;text-decoration:none}
+.cell.hit u{opacity:1}
+.scan{position:absolute;left:0;right:0;height:.4cqw;top:-2%;background:var(--g);box-shadow:0 0 3cqw 1cqw var(--g);opacity:0}
+.scan.go{opacity:1;animation:sw 4.5s linear forwards}
+@keyframes sw{to{top:100%}}
+.rt h3{font:700 1.7cqw 'Bricolage Grotesque'}
+.rt small{font-size:.9cqw;color:#7a8a80}
+.ch{display:flex;align-items:center;gap:.8cqw;margin-top:.7cqw;background:#eef4ef;border-radius:2cqw;padding:.55cqw 1.2cqw;width:fit-content;min-width:14cqw;font-weight:700;font-size:1.1cqw;opacity:0;transform:translateX(2cqw);transition:all .4s}
+.ch.in{box-shadow:0 0 2cqw rgba(63,216,138,.5)}
+.ch s{text-decoration:none;margin-left:auto;background:var(--gd);color:#fff;width:1.5cqw;height:1.5cqw;border-radius:.4cqw;display:grid;place-items:center;font-size:.9cqw}
+.ok{margin-top:1.2cqw;background:var(--gd);color:#fff;border-radius:.9cqw;padding:.9cqw 1.3cqw;opacity:0;transition:opacity .5s;box-shadow:0 0 3cqw rgba(63,216,138,.6)}
+.ok b{display:block;font-size:1.2cqw}.ok small{color:#b9e8cf;font-size:.85cqw}
+
+/* confirm page */
+.cf{width:50cqw}.cf h2{font-size:2.8cqw}.cf small{font-size:.9cqw;color:#7a8a80}
+.chs{display:flex;flex-wrap:wrap;gap:.7cqw;margin:1cqw 0}
+.chs .ch{opacity:1;transform:none;margin:0;background:#e7f0e9;min-width:0;font-size:1cqw}
+.cf h4{font:700 1.2cqw 'Bricolage Grotesque'}
+
+/* AI overlay */
+.ai{position:absolute;inset:0;background:rgba(4,14,9,.9);display:grid;place-items:center;text-align:center;color:#fff;opacity:0;transition:opacity .5s;z-index:5;pointer-events:none}
+.ai.on{opacity:1}
+.ai h3{font:500 2.6cqw 'Bricolage Grotesque';margin-top:2cqw}
+.orb{width:7.5cqw;height:7.5cqw;border-radius:50%;margin:0 auto;background:radial-gradient(circle at 35% 30%,#c7ffe0,var(--g) 40%,#06532a);box-shadow:0 0 6cqw var(--g);animation:pl 1.4s ease-in-out infinite}
+@keyframes pl{50%{transform:scale(1.12)}}
+.cur{position:absolute;width:2cqw;height:2cqw;z-index:9;left:80cqw;top:50cqw;transition:left .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 .3cqw .4cqw rgba(0,0,0,.5));pointer-events:none}
+
+/* S5 */
+#s5{background:radial-gradient(60% 80% at 35% 50%,#4a2a14,#0d0805 75%)}
+.dish{position:absolute;left:-5cqw;top:-2cqw;width:60cqw;height:60cqw;animation:zoom 8s ease-out forwards}
+@keyframes zoom{from{transform:scale(1.15) rotate(-3deg)}to{transform:scale(1) rotate(0)}}
+.steam{position:absolute;left:20cqw;top:8cqw;width:22cqw;height:22cqw;filter:blur(1.2cqw)}
+.steam i{position:absolute;bottom:0;width:4cqw;height:14cqw;border-radius:50%;background:rgba(255,255,255,.35);animation:st 3.5s ease-out infinite}
+@keyframes st{from{transform:translateY(6cqw) scaleX(.6);opacity:0}30%{opacity:.7}to{transform:translateY(-8cqw) scaleX(1.6);opacity:0}}
+.rc{position:absolute;right:4.5cqw;top:5cqw;width:34cqw;background:var(--cr);border-radius:1.4cqw;padding:2.2cqw;color:var(--gd);box-shadow:0 0 6cqw rgba(63,216,138,.25);opacity:0;transform:translateX(4cqw);transition:all .8s}
+.rc .lab{margin-bottom:.7cqw}
+.rc h2{font-size:2.7cqw;line-height:1.05}
+.tg{display:flex;gap:.7cqw;margin:1cqw 0}.tg span{background:#e7f0e9;border-radius:2cqw;padding:.45cqw 1cqw;font-size:.95cqw;font-weight:700}
+.rc li{list-style:none;display:flex;justify-content:space-between;font-size:1.15cqw;padding:.55cqw 0;border-top:1px solid var(--ln);color:#44574d}
+.rc li:before{content:"✓";color:#3b8a5e;margin-right:.8cqw}.rc li b{margin-left:auto;color:var(--gd)}
+
+/* S6 */
+#s6{background:radial-gradient(50% 60% at 50% 45%,#0c4a28,#030906 70%);display:grid;place-items:center;text-align:center;color:#fff}
+.big{display:flex;align-items:center;justify-content:center;gap:1.6cqw;font:800 6.4cqw 'Bricolage Grotesque';letter-spacing:-.03em;filter:drop-shadow(0 0 3cqw rgba(63,216,138,.7));opacity:0;transform:scale(.9);transition:all 1s}
+#s6.on .big{opacity:1;transform:none}
+.big svg{width:7.5cqw;height:7.5cqw;padding:1.5cqw;border-radius:2cqw;background:linear-gradient(135deg,var(--g),#0f9f4f);stroke:#04150c;fill:none;stroke-width:1.6}
+.big em{font-style:normal;color:var(--g)}
+#s6 h2{font:italic 400 3.4cqw 'Instrument Serif',Georgia,serif;margin-top:2.5cqw;opacity:0;transition:opacity .8s}
+#s6 p{margin-top:2cqw;font-size:1.8cqw;color:var(--g);font-weight:700;opacity:0;transition:opacity .8s}
+
+/* S7 */
+#s7{background:radial-gradient(70% 90% at 50% 40%,#12301f,#050a07)}
+.xp{margin:.2cqw 0 1cqw}.xp small{display:block;margin-bottom:.2cqw}
+.xr{display:grid;grid-template-columns:1fr 1fr auto;gap:1cqw;align-items:end;margin-top:.5cqw}
+.xr label{display:block;font-size:.8cqw;color:#7a8a80;margin-bottom:.3cqw}
+.inp{border:1px solid var(--ln);border-radius:.6cqw;padding:.75cqw 1cqw;font-size:1cqw;background:#fff;min-height:2.8cqw;display:flex;align-items:center}
+.inp.ph0{color:#9aa79f}
+.ab{border:1px solid var(--ln);border-radius:.6cqw;padding:.8cqw 1.4cqw;font-weight:700;font-size:1cqw;transition:all .2s;background:#fff}
+.ab.press{transform:scale(.94);background:#e7f0e9;box-shadow:0 0 2.5cqw var(--g)}
+.xt{display:none;background:#fbe9e0;color:#b25a3a;border-radius:2cqw;padding:.2cqw .7cqw;font-size:.8cqw}
+.xt.on{display:inline-block}
+.pr{background:#fbece4;border:1px solid #efc9b8;color:#9c4a2c;border-radius:.8cqw;padding:.75cqw 1.1cqw;font-size:1cqw;font-weight:700;margin-bottom:.9cqw}
+.ex{margin-left:.8cqw;background:#fbe9e0;color:#b25a3a;border-radius:2cqw;padding:.15cqw .7cqw;font-size:.85cqw;font-weight:700}
+.rc li.hot{background:#fff6f1}
+.chat{display:flex;flex-direction:column;gap:.9cqw;margin:1cqw 0}
+.ms{max-width:40cqw;padding:.8cqw 1.3cqw;border-radius:1cqw;font-size:1.1cqw;line-height:1.5;opacity:0;transform:translateY(1cqw);transition:all .5s}
+.ms.u{align-self:flex-end;background:var(--gd);color:#fff}
+.ms.a{align-self:flex-start;background:#eef4ef}
+.dts i{display:inline-block;width:.6cqw;height:.6cqw;border-radius:50%;background:var(--mg);margin:0 .2cqw;animation:bl 1s infinite}
+.dts i:nth-child(2){animation-delay:.2s}.dts i:nth-child(3){animation-delay:.4s}
+@keyframes bl{50%{opacity:.25}}
+.inp2{border:1px solid var(--ln);border-radius:.8cqw;padding:.9cqw 1.3cqw;font-size:1cqw;color:#9aa79f;display:flex;justify-content:space-between;background:#fafaf7}
+
+/* MODERN PLAYER CONTROLS */
+#controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.88));
+    padding: 2.2cqw 2.4cqw 1.3cqw;
+    display: flex;
+    flex-direction: column;
+    gap: .8cqw;
+    opacity: 0;
+    transition: opacity .3s;
+}
+#stage:hover #controls, #stage.paused #controls {
+    opacity: 1;
+}
+#timeline {
+    width: 100%;
+    height: .55cqw;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 1cqw;
+    cursor: pointer;
+    position: relative;
+    transition: height .15s;
+}
+#timeline:hover {
+    height: .85cqw;
+}
+#bar {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: var(--g);
+    border-radius: 1cqw;
+    position: relative;
+}
+#bar::after {
+    content: "";
+    position: absolute;
+    right: -.5cqw;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.2cqw;
+    height: 1.2cqw;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 .8cqw rgba(0,0,0,.6);
+}
+.ctrl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fff;
+    font-size: 1.25cqw;
+    font-weight: 600;
+}
+.ctrl-left, .ctrl-right {
+    display: flex;
+    align-items: center;
+    gap: 1.4cqw;
+}
+.cbtn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    border-radius: .6cqw;
+    padding: .45cqw 1cqw;
+    font-size: 1.15cqw;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .4cqw;
+    transition: background .2s, transform .1s;
+}
+.cbtn:hover {
+    background: rgba(63, 216, 138, 0.28);
+    border-color: var(--g);
+}
+.cbtn:active {
+    transform: scale(.94);
+}
+#time-disp {
+    font-variant-numeric: tabular-nums;
+    color: #d5e2da;
+    font-size: 1.15cqw;
+}
+#center-pause {
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .25s;
+}
+#stage.paused #center-pause {
+    opacity: 1;
+}
+#center-pause span {
+    width: 7cqw;
+    height: 7cqw;
+    border-radius: 50%;
+    background: rgba(16, 46, 38, 0.85);
+    border: .2cqw solid var(--g);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 2.6cqw;
+    padding-left: .4cqw;
+    box-shadow: 0 0 4cqw rgba(0,0,0,.6);
+}
+#snd-hint {
+    position: absolute;
+    top: 2cqw;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    display: none;
+    padding: .7cqw 1.6cqw;
+    border-radius: 3cqw;
+    background: rgba(0, 0, 0, .65);
+    border: 1px solid var(--g);
+    color: #fff;
+    font-size: 1.2cqw;
+    font-weight: 700;
+    pointer-events: none;
+}
+#click-area {
+    position: absolute;
+    inset: 0;
+    bottom: 5cqw;
+    z-index: 20;
+    cursor: pointer;
+}
+/* VOLUME SLIDER */
+#vol{
+    -webkit-appearance:none;appearance:none;
+    width:max(9cqw,70px);
+    height:max(.5cqw,4px);
+    border-radius:1cqw;
+    outline:none;
+    cursor:pointer;
+    background:linear-gradient(to right,var(--g) var(--v,100%),rgba(255,255,255,.28) var(--v,100%));
+}
+#vol::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:max(1.3cqw,12px);height:max(1.3cqw,12px);
+    border-radius:50%;background:#fff;border:0;
+    box-shadow:0 0 .8cqw rgba(0,0,0,.6);
+}
+#vol::-moz-range-thumb{
+    width:max(1.3cqw,12px);height:max(1.3cqw,12px);
+    border-radius:50%;background:#fff;border:0;
+    box-shadow:0 0 .8cqw rgba(0,0,0,.6);
+}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><symbol id="fr" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M5 10h14M8.5 6v1.5M8.5 13v2.5"/></symbol></svg>
+<div id="stage">
+<section class="scene on" id="s1"><div class="cam">
+<div class="door"></div>
+<div class="fridge"><div class="shelf">🥚🥛🧀</div><div class="shelf">🍅🫑🧅</div><div class="shelf">🥬🍋🥕</div></div>
+<div class="person"><i class="h"></i><i class="b"></i><i class="l"></i><div class="bubble" id="bub">Bu gün nə bişirim?</div></div></div>
+<div class="cap hd1" id="c1">Full fridge.<br>No idea what to cook.<br><span style="color:#f0a584;font-size:3cqw">And some food expires soon.</span></div></section>
+
+<section class="scene" id="s2"><div class="win">
+<div class="bar"><b></b><b></b><b></b><span>smartfridge.ai</span></div>
+<div class="nv"><div class="lg"><svg><use href="#fr"/></svg>SmartFridge <em>AI</em></div><div class="nl"><span>Necə işləyir</span><span>Üstünlüklər</span></div><div class="bt">Başla ↗</div></div>
+
+<div class="pg on" id="p1">
+<div class="hero"><div class="lab">● AI-POWERED KITCHEN ASSISTANT</div>
+<h1 class="hd1">Your fridge.<span>Your ingredients.</span><span class="it">Your next great meal.</span></h1>
+<p>Soyuducundakı ərzaqları süni intellektlə tanı. Əlindəki məhsullara uyğun reseptlər yarat və qida israfını azalt.</p>
+<div class="bt" style="display:inline-block;padding:1.2cqw 2cqw">İndi başla →</div></div>
+<div class="sc"><div class="lab" style="margin:0;font-size:.7cqw;color:#7a8a80">SMART ANALYSIS</div><h3>Fridge scanner</h3>
+<div class="dz" id="dz"><div><div class="ic">❄️</div><b>Şəkli buraya əlavə et</b><small>Kliklə və ya şəkli buraya sürüklə</small><small>JPG · PNG · WEBP · HEIC</small></div>
+<div class="ph" id="ph"><span>🥚</span><span>🍅</span><span>🧀</span><span>🫑</span><span>🧅</span><span>🥛</span><span>🥬</span><span>🍋</span></div></div>
+<div class="cn">✦ AI şəkli analiz edərək ərzaqları müəyyənləşdirəcək.</div>
+<div class="bb" id="idb"><span>Ərzaqları müəyyən et</span><span>→</span></div></div></div>
+
+<div class="pg" id="p2"><div class="stp"><span><i class="a">01</i>Şəkil analizi</span><u></u><span><i>02</i>Məhsul seçimi</span><u></u><span><i>03</i>Resept</span></div>
+<div class="card sg"><div class="im" id="im"><div class="cell" data-n="1">🥚<u></u></div><div class="cell">🍅<u></u></div><div class="cell">🧀<u></u></div><div class="cell">🫑<u></u></div><div class="cell">🧅<u></u></div><div class="cell">🥛</div><div class="cell">🥬</div><div class="cell">🍋</div><div class="scan" id="scan"></div></div>
+<div class="rt"><h3>AI ərzaqları tanıyır</h3><small>Tapılan məhsullar</small><div id="chs"></div>
+<div class="ok" id="ok"><b>✓ Ingredients Successfully Recognized</b><small>Ərzaqlar uğurla tanındı</small></div></div></div></div>
+
+<div class="pg" id="p3"><div class="stp"><span><i class="a">01</i>Şəkil analizi</span><u></u><span><i class="a">02</i>Məhsul seçimi</span><u></u><span><i>03</i>Resept</span></div>
+<div class="card cf"><h2 class="hd1">Ərzaqlarını <span class="it">təsdiqlə.</span></h2><small>AI tərəfindən tapılan məhsulları yoxla.</small>
+<div class="chs" id="chs2"></div>
+<div class="xp"><h4>Vaxtı yaxınlaşan məhsul var?</h4><small>Mövcud məhsulu seç və son istifadə tarixini yaz.</small><div class="xr"><div><label>Məhsulu seç</label><div class="inp" id="sel">Pomidor ⌄</div></div><div><label>Son istifadə tarixi</label><div class="inp ph0" id="dt">mm/dd/yyyy</div></div><div class="ab" id="adb">Tarix əlavə et</div></div></div>
+<div class="bb" id="gen"><span>Reseptimi yarat</span><span>→</span></div></div></div>
+<div class="ai" id="ai"><div><div class="orb"></div><h3 id="ait">Resept hazırlanır…</h3></div></div>
+</div>
+<svg class="cur" id="cur" viewBox="0 0 24 24"><path d="M3 2l7 19 3-8 8-3z" fill="#fff" stroke="#000" stroke-width="1.5"/></svg></section>
+
+<section class="scene" id="s5">
+<div class="dish"><svg viewBox="0 0 600 600" width="100%" height="100%">
+<defs><radialGradient id="pl" cx=".5" cy=".4"><stop offset="0" stop-color="#fbfaf7"/><stop offset="1" stop-color="#cfc8bb"/></radialGradient>
+<radialGradient id="eg" cx=".4" cy=".3"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f2a900"/></radialGradient>
+<filter id="sh"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-opacity=".55"/></filter></defs>
+<circle cx="300" cy="320" r="270" fill="url(#pl)" filter="url(#sh)"/><circle cx="300" cy="320" r="225" fill="none" stroke="#e5ded1" stroke-width="4"/>
+<g fill="#4aa14b"><path d="M120 420q-10-90 60-120q40 70-10 130z"/><path d="M150 450q30-70 100-80q10 60-50 90z" fill="#5db35a"/></g>
+<g fill="url(#eg)"><ellipse cx="320" cy="300" rx="130" ry="95"/><ellipse cx="260" cy="350" rx="85" ry="60"/><ellipse cx="390" cy="360" rx="75" ry="55"/><ellipse cx="340" cy="245" rx="70" ry="45"/></g>
+<g fill="#fff3a8" opacity=".7"><ellipse cx="290" cy="270" rx="40" ry="22"/><ellipse cx="380" cy="340" rx="36" ry="20"/></g>
+<g fill="#d9361f"><rect x="250" y="260" width="30" height="26" rx="6" transform="rotate(20 265 273)"/><rect x="360" y="285" width="28" height="24" rx="6" transform="rotate(-15 374 297)"/><rect x="300" y="370" width="30" height="26" rx="6" transform="rotate(35 315 383)"/><rect x="400" y="370" width="26" height="22" rx="6"/></g>
+<g fill="#35a34a"><rect x="310" y="240" width="24" height="22" rx="5" transform="rotate(15 322 251)"/><rect x="230" y="330" width="24" height="22" rx="5"/><rect x="350" y="330" width="22" height="20" rx="5" transform="rotate(40 361 340)"/></g>
+<g fill="#f6b21b"><rect x="280" y="320" width="22" height="20" rx="5" transform="rotate(25 291 330)"/><rect x="380" y="260" width="22" height="20" rx="5"/><rect x="330" y="395" width="22" height="20" rx="5" transform="rotate(10 341 405)"/></g>
+<g fill="#fff4d6"><circle cx="270" cy="300" r="6"/><circle cx="345" cy="310" r="6"/><circle cx="310" cy="345" r="5"/><circle cx="395" cy="320" r="5"/><circle cx="250" cy="380" r="5"/></g>
+<g fill="#c9e8a0"><circle cx="320" cy="280" r="3"/><circle cx="285" cy="360" r="3"/><circle cx="375" cy="385" r="3"/><circle cx="260" cy="320" r="3"/></g></svg>
+<div class="steam"><i style="left:2cqw"></i><i style="left:8cqw;animation-delay:1.1s"></i><i style="left:14cqw;animation-delay:2.2s"></i></div></div>
+<div class="rc" id="rc"><div class="lab">YOUR PERSONALIZED RECIPE</div><h2 class="hd1">Yumurta və Tərəvəzli Sürətli Qızartma</h2>
+<div class="tg"><span>🕒 15 dəqiqə</span><span>✦ Asan</span><span>2 nəfərlik porsiya</span></div>
+<div class="pr">⏳ Son tarixi yaxın məhsullar reseptdə öndə tutuldu</div><ul><li class="hot">Pomidor<span class="ex">⏳ 2 gün qalıb</span><b>1 ədəd</b></li><li class="hot">Yumurta<span class="ex">⏳ 3 gün qalıb</span><b>4 ədəd</b></li><li>Pendir<b>100 q</b></li><li>Soğan<b>1 ədəd</b></li><li>Sarı bibər<b>1 ədəd</b></li></ul></div></section>
+
+<section class="scene" id="s7"><div class="win">
+<div class="bar"><b></b><b></b><b></b><span>smartfridge.ai/recipe</span></div>
+<div class="nv"><div class="lg"><svg><use href="#fr"/></svg>SmartFridge <em>AI</em></div><div class="nl"><span>Ana səhifə</span></div><div class="bt">Ana səhifə ↗</div></div>
+<div style="position:absolute;left:0;right:0;top:7.2cqw"><div class="stp"><span><i class="a">01</i>Şəkil analizi</span><u></u><span><i class="a">02</i>Məhsul seçimi</span><u></u><span><i class="a">03</i>Resept</span></div>
+<div class="card" style="width:62cqw"><div class="lab"><span>03</span> &nbsp;AI ASSISTANT</div><h3 class="hd1" style="font-size:2.2cqw">Süni intellekt aşpazla söhbət</h3><small style="font-size:.95cqw;color:#7a8a80">Resept barədə sualın var? Məsələn: "Bu yeməyi sobada bişirə bilərəm?"</small>
+<div class="chat"><div class="ms u" id="m1">Bu yeməyi sobada bişirə bilərəm?</div><div class="ms a" id="m2"></div><div class="ms u" id="m3">Pendir əvəzinə nə istifadə edim?</div><div class="ms a" id="m4"></div></div>
+<div class="inp2"><span>Mesajınızı yazın…</span><span>→</span></div></div></div></div></section>
+<section class="scene" id="s6"><div><div class="big"><svg><use href="#fr"/></svg>SmartFridge <em>AI</em></div>
+<h2 id="t1">Turn Your Ingredients Into Amazing Meals.</h2><p id="t2">SmartFridge AI – Cook Smarter. Waste Less.</p></div></section>
+
+<div id="click-area" title="Dayandır / Davam et"></div>
+<div id="snd-hint">🔊 Səsi eşitmək üçün ekrana bir dəfə klik et</div>
+<div id="center-pause"><span>▶</span></div>
+
+<div id="controls">
+    <div id="timeline" title="İstənilən saniyəyə keçid et">
+        <i id="bar"></i>
+    </div>
+    <div class="ctrl-row">
+        <div class="ctrl-left">
+            <button type="button" class="cbtn" id="btn-play">⏸ Dayandır</button>
+            <button type="button" class="cbtn" id="btn-back">↺ 10s</button>
+            <button type="button" class="cbtn" id="btn-fwd">10s ↻</button>
+            <span id="time-disp">00:00 / 01:04</span>
+        </div>
+        <div class="ctrl-right">
+    <input type="range" id="vol" min="0" max="100" value="100" aria-label="Səs səviyyəsi">
+    <button type="button" class="cbtn" id="btn-mute">🔊 Səs</button>
+</div>
+    </div>
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const DURATION = 64000;
+const DOTS = '<span class="dts"><i></i><i></i><i></i></span>';
+const items = [['Yumurta','🥚'],['Pomidor','🍅'],['Pendir','🧀'],['Bibər','🫑'],['Soğan','🧅']];
+
+$('chs').innerHTML = items.map(i => `<div class="ch">${i[1]} ${i[0]}<s>✓</s></div>`).join('');
+$('chs2').innerHTML = items.map(i => `<div class="ch">${i[1]} ${i[0]}<b class="xt"></b><s>✓</s></div>`).join('');
+
+let elapsed = 0;
+let isPlaying = true;
+let isMuted = false;
+let volume = 1, lastVolume = 1;
+let lastFrame = performance.now();
+
+let AC = null, BUF = null, srcNode = null, gainNode = null, isRendering = false;
+let audioOff = 0, audioT0 = 0, swallowClick = false;
+const AUTO = location.search.indexOf('auto') > -1;
+
+function initAudioContext() {
+    if (!AC) {
+        try {
+            AC = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = AC.createGain();
+            gainNode.gain.value = isMuted ? 0 : volume;
+            gainNode.connect(AC.destination);
+        } catch (e) {}
+    }
+    if (AC && AC.state === 'suspended') {
+        AC.resume();
+    }
+}
+
+function stopAudioSource() {
+    if (srcNode) {
+        try { srcNode.stop(); srcNode.disconnect(); } catch (e) {}
+        srcNode = null;
+    }
+}
+
+function startAudioAt(ms) {
+    stopAudioSource();
+    if (!isPlaying || !BUF) return;
+    initAudioContext();
+    if (!AC) return;
+    if (AC.state !== 'running') {
+        AC.resume().then(() => {
+            if (AC.state === 'running' && isPlaying && BUF && !srcNode) startAudioAt(elapsed);
+        }).catch(() => {});
+        return;
+    }
+    try {
+        srcNode = AC.createBufferSource();
+        srcNode.buffer = BUF;
+        srcNode.connect(gainNode);
+        const offsetSec = Math.max(0, Math.min(63.9, ms / 1000));
+        srcNode.start(0, offsetSec);
+        audioOff = offsetSec; audioT0 = AC.currentTime;
+    } catch (e) {}
+}
+
+function loudify(buf) {
+    let sum = 0, n = 0;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+        const d = buf.getChannelData(c);
+        for (let i = 0; i < d.length; i++) { sum += d[i] * d[i]; n++; }
+    }
+    const rms = Math.sqrt(sum / n) || 1e-6;
+    const gain = Math.min(4, Math.pow(10, -9 / 20) / rms);
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+        const d = buf.getChannelData(c);
+        for (let i = 0; i < d.length; i++) d[i] = Math.tanh(d[i] * gain);
+    }
+    return buf;
+}
+
+function renderOriginalMusic() {
+    if (isRendering || BUF) return;
+    isRendering = true;
+    const SR = 44100;
+    let C;
+    try { C = new OfflineAudioContext(2, SR * 64, SR); } catch (e) { return; }
+
+    const mix = C.createGain(), comp = C.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = .01; comp.release.value = .2;
+    const out = C.createGain();
+    out.gain.setValueAtTime(.95, 0); out.gain.setValueAtTime(.95, 61); out.gain.linearRampToValueAtTime(0, 64);
+    mix.connect(comp); comp.connect(out); out.connect(C.destination);
+
+    const ir = C.createBuffer(2, SR * 2, SR);
+    for (let c = 0; c < 2; c++) {
+        const d = ir.getChannelData(c);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.5);
+    }
+    const cv = C.createConvolver(); cv.buffer = ir;
+    const rg = C.createGain(); rg.gain.value = .3; cv.connect(rg); rg.connect(comp);
+
+    const dl = C.createDelay(1); dl.delayTime.value = .375;
+    const fb = C.createGain(); fb.gain.value = .38;
+    const dg = C.createGain(); dg.gain.value = .35;
+    dl.connect(fb); fb.connect(dl); dl.connect(dg); dg.connect(mix); dg.connect(cv);
+
+    const pump = C.createGain(); pump.gain.setValueAtTime(1, 0); pump.connect(mix);
+    const s1 = C.createGain(); s1.gain.value = .3; s1.connect(dl);
+    const s2 = C.createGain(); s2.gain.value = .5; s2.connect(cv);
+    pump.connect(s1); pump.connect(s2);
+
+    const fx = C.createGain(); fx.connect(mix); fx.connect(s1); fx.connect(s2);
+    const padLP = C.createBiquadFilter(); padLP.type = 'lowpass'; padLP.connect(pump);
+    [[0,400],[10,4500],[36.5,4500],[38.8,700],[39.5,5200],[48.5,5200],[50,1800],[56,1800],[59,6000]].forEach(([t,f],i) =>
+        i == 0 ? padLP.frequency.setValueAtTime(f, t) : (i == 1 || i == 3 || i == 6 || i == 8) ? padLP.frequency.exponentialRampToValueAtTime(f, t) : padLP.frequency.setValueAtTime(f, t)
+    );
+
+    const arpLP = C.createBiquadFilter(); arpLP.type = 'lowpass'; arpLP.frequency.value = 5000; arpLP.connect(pump);
+    const nb = C.createBuffer(1, SR, SR), nd = nb.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+
+    const env = (dest, t, a, d, v) => {
+        const g = C.createGain();
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d);
+        g.connect(dest); return g;
+    };
+    const osc = (ty, f, t, dur, g, det) => {
+        const o = C.createOscillator(); o.type = ty; o.frequency.value = f;
+        if (det) o.detune.value = det;
+        o.connect(g); o.start(t); o.stop(t + dur + .05);
+    };
+    const pluck = (dest, ty, f, t, d, v) => osc(ty, f, t, d + .01, env(dest, t, .005, d, v));
+    const nz = (dest, t, d, v, ft, fr) => {
+        const s = C.createBufferSource(); s.buffer = nb;
+        const f = C.createBiquadFilter(); f.type = ft; f.frequency.value = fr;
+        s.connect(f); f.connect(env(dest, t, .002, d, v)); s.start(t); s.stop(t + d + .05);
+    };
+    const kick = t => {
+        const o = C.createOscillator(), g = C.createGain();
+        o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
+        g.gain.setValueAtTime(.95, t); g.gain.exponentialRampToValueAtTime(.0001, t + .38);
+        o.connect(g); g.connect(mix); o.start(t); o.stop(t + .4);
+        pump.gain.setValueAtTime(.3, t); pump.gain.linearRampToValueAtTime(1, t + .42);
+    };
+    const clap = (t, k = 1) => { nz(mix, t, .16, .45 * k, 'bandpass', 1800); nz(mix, t + .012, .12, .3 * k, 'bandpass', 2400); };
+    const hat = (t, v) => nz(mix, t, .05, v, 'highpass', 8000);
+    const crash = t => nz(mix, t, 1.8, .35, 'highpass', 5000);
+
+    const CH = [
+        {p:[220,261.63,329.63],b:110,l:[440,523.25,659.25]},
+        {p:[174.61,220,261.63],b:87.31,l:[349.23,440,523.25]},
+        {p:[261.63,329.63,392],b:130.81,l:[523.25,659.25,784]},
+        {p:[196,246.94,293.66],b:98,l:[392,493.88,587.33]}
+    ];
+    const A = (t, a, b) => t >= a && t < b;
+
+    for (let k = 0; k * .125 < 56; k++) {
+        const t = k * .125, s = k % 16, bar = Math.floor(k / 16), ch = CH[bar % 4];
+        const drop = A(t, 39.5, 48.5), groove = A(t, 6, 36.5) || drop, full = A(t, 24, 36.5) || drop, calm = A(t, 48.5, 56);
+        if (s == 0 && t < 56) ch.p.forEach(f => [-8, 8].forEach(d => {
+            const g = C.createGain();
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045, t + .12);
+            g.gain.setValueAtTime(.045, t + 1.9); g.gain.linearRampToValueAtTime(0, t + 2.1);
+            g.connect(padLP); osc('sawtooth', f, t, 2.1, g, d);
+        }));
+        if (t < 56 && s % 2 == 0) pluck(arpLP, 'triangle', ch.l[[0,1,2,1,2,1,0,2][s/2]] * (drop ? 2 : 1), t, .35, .1);
+        if (drop && s % 2 == 1) pluck(arpLP, 'triangle', ch.l[[1,2,0,2,1,2,1,0][(s-1)/2]] * 2, t, .2, .045);
+        if (drop && s % 2 == 0) pluck(arpLP, 'sawtooth', ch.l[[2,1,2,0,1,2,1,0][s/2]], t, .28, .07);
+        if (groove && s % 4 == 0) kick(t);
+        if (groove && (s % 4 == 2 || s == 0)) { pluck(mix, 'sine', ch.b, t, .4, .42); pluck(mix, 'sawtooth', ch.b, t, .3, .06); }
+        if (calm && s == 0) pluck(mix, 'sine', ch.b, t, 1.6, .3);
+        if ((A(t, 12, 24) || calm) && s % 4 == 2) hat(t, .14);
+        if (full && s % 4 == 2) hat(t, .16);
+        if (full && s % 2 == 1) hat(t, .07);
+        if (full && (s == 4 || s == 12)) clap(t);
+    }
+    crash(39.5); pluck(mix, 'sine', 55, 39.5, 1.2, .6);
+    [[36.5, 39.5], [56, 59]].forEach(([a, b]) => {
+        const s = C.createBufferSource(); s.buffer = nb; s.loop = true;
+        const f = C.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+        f.frequency.setValueAtTime(300, a); f.frequency.exponentialRampToValueAtTime(7000, b);
+        const g = C.createGain(); g.gain.setValueAtTime(.0001, a); g.gain.linearRampToValueAtTime(.5, b - .05); g.gain.linearRampToValueAtTime(0, b + .02);
+        s.connect(f); f.connect(g); g.connect(mix); s.start(a); s.stop(b + .1);
+
+        const o = C.createOscillator(), og = C.createGain(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(150, a); o.frequency.exponentialRampToValueAtTime(1800, b);
+        og.gain.setValueAtTime(.0001, a); og.gain.linearRampToValueAtTime(.05, b - .05); og.gain.linearRampToValueAtTime(0, b + .02);
+        o.connect(og); og.connect(mix); o.start(a); o.stop(b + .1);
+
+        let t = a; while (t < b - .05) { const fr = (t - a) / (b - a); clap(t, .5 + fr); t += fr < .4 ? .5 : fr < .7 ? .25 : .125; }
+    });
+    crash(59); kick(59); pluck(mix, 'sine', 55, 59, 3, .7);
+    [220, 277.18, 329.63, 440, 554.37, 659.25].forEach(f => [-6, 6].forEach(d => {
+        const g = C.createGain();
+        g.gain.setValueAtTime(0, 59); g.gain.linearRampToValueAtTime(.05, 59.05); g.gain.exponentialRampToValueAtTime(.0001, 64);
+        g.connect(mix); g.connect(cv); osc('sawtooth', f, 59, 5, g, d);
+    }));
+    [440, 554.37, 659.25, 880, 1108.7, 1318.5].forEach((f, i) => pluck(fx, 'triangle', f, 59 + i * .12, 1.4, .12));
+
+    C.startRendering().then(b => {
+        BUF = loudify(b);
+        if (isPlaying) startAudioAt(elapsed);
+    });
+}
+
+function renderAt(t) {
+    let activeScene = 's1';
+    if (t >= 6500 && t < 39500) activeScene = 's2';
+    else if (t >= 39500 && t < 48500) activeScene = 's5';
+    else if (t >= 48500 && t < 59000) activeScene = 's7';
+    else if (t >= 59000) activeScene = 's6';
+
+    ['s1','s2','s5','s6','s7'].forEach(id => $(id).classList.toggle('on', id === activeScene));
+
+    $('bub').classList.toggle('in', t >= 600);
+    $('c1').classList.toggle('in', t >= 1800);
+
+    let activePage = 'p1';
+    if (t >= 12200 && t < 24500) activePage = 'p2';
+    else if (t >= 24500) activePage = 'p3';
+    ['p1','p2','p3'].forEach(id => $(id).classList.toggle('on', id === activePage));
+
+    $('ph').classList.toggle('in', t >= 9000);
+    $('idb').classList.toggle('press', t >= 11300 && t < 12200);
+
+    $('scan').classList.toggle('go', t >= 12200 && t < 17000);
+    const cells = [...document.querySelectorAll('.cell')];
+    const chs = [...$('chs').children];
+    items.forEach((_, i) => {
+        const hit = t >= 13300 + i * 1500;
+        cells[i].classList.toggle('hit', hit);
+        chs[i].classList.toggle('in', hit);
+    });
+    $('ok').classList.toggle('in', t >= 21000);
+
+    const dt = $('dt');
+    if (t < 26000) { dt.textContent = 'mm/dd/yyyy'; dt.classList.add('ph0'); }
+    else if (t < 29900) {
+        const str = '11/16/2026';
+        dt.textContent = str.slice(0, Math.min(str.length, Math.floor((t - 26000) / 90) + 1));
+        dt.classList.remove('ph0');
+    } else if (t < 31800) { dt.textContent = 'mm/dd/yyyy'; dt.classList.add('ph0'); }
+    else if (t < 35500) {
+        const str = '11/17/2026';
+        dt.textContent = str.slice(0, Math.min(str.length, Math.floor((t - 31800) / 90) + 1));
+        dt.classList.remove('ph0');
+    }
+
+    $('sel').textContent = t >= 30900 ? 'Yumurta ⌄' : 'Pomidor ⌄';
+    $('adb').classList.toggle('press', (t >= 29000 && t < 29900) || (t >= 34800 && t < 35500));
+
+    const tag1 = $('chs2').children[1].querySelector('.xt');
+    tag1.textContent = '⏳ 2 gün qalıb';
+    tag1.classList.toggle('on', t >= 29000);
+
+    const tag0 = $('chs2').children[0].querySelector('.xt');
+    tag0.textContent = '⏳ 3 gün qalıb';
+    tag0.classList.toggle('on', t >= 34800);
+
+    $('gen').classList.toggle('press', t >= 36000 && t < 36500);
+    $('ai').classList.toggle('on', t >= 36500 && t < 39500);
+    $('ait').textContent = 'Son tarixi yaxın məhsullar prioritetə alınır…';
+
+    const cur = $('cur');
+    let cx = 80, cy = 50;
+    if (t >= 7500 && t < 10200) { cx = 76; cy = 26; }
+    else if (t >= 10200 && t < 24500) { cx = 76; cy = 40.5; }
+    else if (t >= 24500 && t < 28000) { cx = 54; cy = 33; }
+    else if (t >= 28000 && t < 29900) { cx = 68; cy = 33; }
+    else if (t >= 29900 && t < 31800) { cx = 36; cy = 33; }
+    else if (t >= 31800 && t < 33800) { cx = 54; cy = 33; }
+    else if (t >= 33800 && t < 35500) { cx = 68; cy = 33; }
+    else if (t >= 35500) { cx = 50; cy = 39; }
+    cur.style.left = cx + 'cqw';
+    cur.style.top = cy + 'cqw';
+
+    $('rc').classList.toggle('in', t >= 41500);
+
+    $('m1').classList.toggle('in', t >= 49800);
+    $('m2').classList.toggle('in', t >= 50800);
+    $('m2').innerHTML = t >= 52200
+        ? '<b>AI aşpaz</b><br>Bəli! 180°C-də 8–10 dəqiqə bişirə bilərsiniz. Pomidor və yumurtanın son tarixi yaxındır, buna görə bu gün hazırlamaq ən yaxşısıdır.'
+        : DOTS;
+
+    $('m3').classList.toggle('in', t >= 54800);
+    $('m4').classList.toggle('in', t >= 55800);
+    $('m4').innerHTML = t >= 57200
+        ? '<b>AI aşpaz</b><br>Süzmə və ya motal pendiri yaxşı alternativdir. Eyni miqdifadə istifadə edin.'
+        : DOTS;
+
+    $('t1').classList.toggle('in', t >= 60200);
+    $('t2').classList.toggle('in', t >= 61800);
+
+    $('bar').style.width = (t / DURATION * 100) + '%';
+    const curSec = Math.floor(t / 1000);
+    const mm = String(Math.floor(curSec / 60)).padStart(2, '0');
+    const ss = String(curSec % 60).padStart(2, '0');
+    $('time-disp').textContent = `${mm}:${ss} / 01:04`;
+}
+
+function togglePlay() {
+    initAudioContext();
+    if (elapsed >= DURATION) elapsed = 0;
+    isPlaying = !isPlaying;
+    $('stage').classList.toggle('paused', !isPlaying);
+    $('btn-play').textContent = isPlaying ? '⏸ Dayandır' : '▶ Davam et';
+    if (isPlaying) {
+        lastFrame = performance.now();
+        startAudioAt(elapsed);
+    } else {
+        stopAudioSource();
+    }
+}
+
+function seekTo(newMs) {
+    initAudioContext();
+    elapsed = Math.max(0, Math.min(DURATION, newMs));
+    renderAt(elapsed);
+    if (isPlaying) startAudioAt(elapsed);
+}
+
+$('btn-play').onclick = togglePlay;
+$('click-area').onclick = () => { if (swallowClick) { swallowClick = false; return; } togglePlay(); };
+$('btn-back').onclick = () => seekTo(elapsed - 10000);
+$('btn-fwd').onclick = () => seekTo(elapsed + 10000);
+
+function applyVolume() {
+    if (gainNode) gainNode.gain.value = isMuted ? 0 : volume;
+    const pct = isMuted ? 0 : Math.round(volume * 100);
+    $('vol').value = pct;
+    $('vol').style.setProperty('--v', pct + '%');
+    $('btn-mute').textContent = isMuted ? '🔇 Səssiz' : (volume < 0.5 ? '🔉 Səs' : '🔊 Səs');
+}
+
+$('vol').addEventListener('input', () => {
+    initAudioContext();
+    volume = $('vol').value / 100;
+    if (volume > 0) lastVolume = volume;
+    isMuted = volume === 0;
+    applyVolume();
+});
+
+$('btn-mute').onclick = () => {
+    initAudioContext();
+    if (isMuted) {
+        isMuted = false;
+        volume = lastVolume || 1;
+    } else {
+        lastVolume = volume || lastVolume || 1;
+        isMuted = true;
+    }
+    applyVolume();
+};
+
+applyVolume();
+
+$('timeline').onclick = (e) => {
+    const rect = $('timeline').getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    seekTo(ratio * DURATION);
+};
+
+window.addEventListener('keydown', (e) => {
+    if (e.target && e.target.id === 'vol') return;
+    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+    if (e.code === 'ArrowLeft') { e.preventDefault(); seekTo(elapsed - 10000); }
+    if (e.code === 'ArrowRight') { e.preventDefault(); seekTo(elapsed + 10000); }
+});
+
+// Səhifəyə ilk toxunuşda/klikdə səsi dərhal aktivləşdiririk
+window.addEventListener('pointerdown', (e) => {
+    initAudioContext();
+    if (AC && AC.state === 'suspended') {
+        AC.resume().then(() => {
+            if (BUF && isPlaying && !srcNode) startAudioAt(elapsed);
+        });
+    }
+}, { once: true });
+
+let hintOn = false;
+function loop(now) {
+    const need = !!BUF && !(AC && AC.state === 'running') && !isMuted;
+    if (need !== hintOn) {
+        hintOn = need;
+        $('snd-hint').style.display = need ? 'block' : 'none';
+    }
+    const dt = now - lastFrame;
+    lastFrame = now;
+    if (isPlaying) {
+        elapsed += dt;
+        if (elapsed >= DURATION) {
+            elapsed = DURATION;
+            isPlaying = false;
+            stopAudioSource();
+            $('stage').classList.add('paused');
+            $('btn-play').textContent = '↻ Yenidən izlə';
+        }
+        renderAt(elapsed);
+    }
+    requestAnimationFrame(loop);
+}
+
+renderOriginalMusic();
+renderAt(0);
+if (AUTO) { try { parent.postMessage('promo-started', '*'); } catch (e) {} }
+requestAnimationFrame(loop);
+</script></body></html>

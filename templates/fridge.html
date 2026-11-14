@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ağıllı soyuducu — SmartFridge AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='extra.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="nav-container">
+        <a href="/" class="brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="3" width="20" height="26" rx="4"/>
+                    <path d="M6 13h20M11 8v2M11 17v5"/>
+                </svg>
+            </span>
+            <span>SmartFridge<span class="brand-ai"> AI</span></span>
+        </a>
+        <a href="/" class="nav-cta">Ana səhifə <span>↗</span></a>
+    </div>
+</header>
+
+<main class="sf">
+    <div class="sf-intro">
+        <span class="section-label">SENSOR EKRANI</span>
+        <h1>Ağıllı <em>soyuducu</em></h1>
+        <p>Soyuducunun üzərindəki ekran: temperaturu izləyir, məhsulları düzgün rəfə yerləşdirir.</p>
+    </div>
+
+    <div class="sf-screen">
+        <div class="sf-bar">
+            <div class="sf-status" id="sf-status"><i></i><span>Yüklənir…</span></div>
+            <div class="sf-bar-right">
+                <span class="sf-time" id="sf-time">--:--</span>
+                <div class="sf-mode" id="sf-mode">
+                    <button type="button" data-mode="auto" class="on">AI avtomatik</button>
+                    <button type="button" data-mode="manual">Manual</button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sf-tabs" id="sf-tabs">
+            <button type="button" data-tab="panel" class="on">Panel</button>
+            <button type="button" data-tab="products">Məhsullar</button>
+            <button type="button" data-tab="ai">Təkliflər <b id="ai-badge" hidden>0</b></button>
+            <button type="button" data-tab="shop">Alış <b id="shop-badge" hidden>0</b></button>
+            <button type="button" data-tab="log">Jurnal</button>
+        </nav>
+
+        <div class="sf-body">
+            <section data-pane="panel" class="on">
+                <p class="sf-note" id="mode-note"></p>
+                <div class="zone-grid" id="zone-grid"></div>
+                <button type="button" class="sf-ghost" id="btn-door">Qapı açılması testi (simulyasiya)</button>
+            </section>
+
+            <section data-pane="products">
+                <form id="add-form" class="add-form">
+                    <input id="p-name" type="text" placeholder="Məhsulun adı (məs. Süd)" maxlength="60" required>
+                    <input id="p-exp" type="date" title="Son istifadə tarixi (boşdursa AI təxmin edir)">
+                    <button type="submit">Əlavə et</button>
+                </form>
+                <p class="sf-hint">Növü və rəfi AI özü təyin edir. Tarixi boş qoysan, təxmini müddət yazılır.</p>
+                <div id="p-list"></div>
+                <div class="sf-actions">
+                    <button type="button" id="btn-seed">Demo məlumat</button>
+                    <button type="button" id="btn-clear">Hamısını təmizlə</button>
+                </div>
+            </section>
+
+            <section data-pane="ai">
+                <div id="sg-list"></div>
+            </section>
+                        <section data-pane="shop">
+                <div class="shop-sum" id="shop-sum"></div>
+
+                <div class="shop-aibox">
+                    <button type="button" id="btn-shop-ai">✦ AI şərhi al</button>
+                    <button type="button" id="btn-shop-copy" class="alt">Alış siyahısını kopyala</button>
+                    <p id="shop-ai-out" hidden></p>
+                </div>
+
+                <div id="shop-list"></div>
+
+                <h4 class="shop-h">İstifadəni qeyd et</h4>
+                <form id="use-form" class="use-form">
+                    <input id="u-name" type="text" placeholder="Məhsul (məs. Süd)" maxlength="60" required>
+                    <input id="u-qty" type="number" min="1" max="50" value="1" aria-label="Miqdar">
+                    <button type="submit">Qeyd et</button>
+                </form>
+                <p class="sf-hint">Qeyd etdikdə məhsul statistikaya yazılır və soyuducudan həmin sayda çıxarılır.</p>
+
+                <div class="sf-actions">
+                    <button type="button" id="btn-usage-seed">Nümunə statistika yüklə</button>
+                    <button type="button" id="btn-usage-clear">Statistikanı təmizlə</button>
+                </div>
+            </section>
+            <section data-pane="log">
+                <div class="export-row">
+                    <a href="/api/fridge/export/products.csv">⬇ Məhsullar</a>
+                    <a href="/api/fridge/export/sensors.csv">⬇ Sensor jurnalı</a>
+                    <a href="/api/fridge/export/categories.csv">⬇ Növlər</a>
+                    <a href="/api/fridge/export/usage.csv">⬇ İstifadə statistikası</a>
+                </div>
+                <div id="ev-list"></div>
+            </section>
+        </div>
+
+        <div class="sf-toast" id="toast"></div>
+    </div>
+</main>
+
+<script src="{{ url_for('static', filename='fridge.js') }}"></script>
+</body>
+</html>

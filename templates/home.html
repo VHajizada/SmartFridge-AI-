@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SmartFridge AI — Seçim et</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='extra.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="nav-container">
+        <a href="/" class="brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="3" width="20" height="26" rx="4"/>
+                    <path d="M6 13h20M11 8v2M11 17v5"/>
+                </svg>
+            </span>
+            <span>SmartFridge<span class="brand-ai"> AI</span></span>
+        </a>
+    </div>
+</header>
+
+<main class="home">
+    <div class="home-head">
+        <span class="section-label">SMARTFRIDGE AI</span>
+        <h1>Nə etmək <em>istəyirsən?</em></h1>
+        <p>İki rejimdən birini seç: əlindəki ərzaqlardan resept al və ya ağıllı soyuducunu idarə et.</p>
+    </div>
+
+    <div class="mode-grid">
+        <a href="/scanner" class="mode-card">
+            <div class="mode-icon">📷</div>
+            <span class="mode-tag">REJİM 01</span>
+            <h2>Resept aşpazı</h2>
+            <p>Soyuducunun şəklini yüklə, AI ərzaqları tanısın və sənə resept hazırlasın.</p>
+            <ul>
+                <li>Şəkildən ərzaq tanıma</li>
+                <li>Son istifadə tarixinə görə resept</li>
+                <li>Aşpazla söhbət</li>
+            </ul>
+            <span class="mode-cta"><span>Reseptə keç</span><span>→</span></span>
+        </a>
+
+                    <a href="/fridge" class="mode-card">
+            <div class="mode-icon">❄️</div>
+            <span class="mode-tag">REJİM 02</span>
+            <h2>Ağıllı soyuducu</h2>
+            <p>Soyuducunun sensor ekranı: AI məhsulları çeşidləyir, temperatur və rütubəti izləyir.</p>
+            <ul>
+                <li>Canlı sensor məlumatları</li>
+                <li>AI-dan «bu məhsulu başqa rəfə qoy» təklifləri</li>
+                <li>Manual idarəetmə və data bazası</li>
+            </ul>
+            <span class="mode-cta"><span>Soyuducunu aç</span><span>→</span></span>
+        </a>
+    </div>
+</main>
+
+</body>
+</html>

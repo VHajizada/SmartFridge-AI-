@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SmartFridge AI — Cook Smarter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+        ::placeholder {
+            color: #a1aaa2;
+            opacity: 1;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+{% macro chip(item, checked) %}
+<div class="ingredient-item" style="display: inline-flex; align-items: center; padding: 8px 15px; background: #edf4ed; border: 1px solid #dce8dc; border-radius: 30px; margin: 5px;">
+    <label class="ingredient-chip" style="display: flex; align-items: center; gap: 8px; color: var(--green-dark); font-size: 13px; font-weight: 700; cursor: pointer;">
+        <input type="checkbox" name="ingredients" value="{{ item }}" {% if checked %}checked{% endif %} style="accent-color: var(--green); width: 15px; height: 15px;">
+        <span>{{ item }}</span>
+    </label>
+    <input type="hidden" name="all_ingredients" value="{{ item }}">
+</div>
+{% endmacro %}
+
+<div class="loader-overlay" id="loader" role="status" style="display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; flex-direction: column; background: rgba(13, 45, 37, .82); backdrop-filter: blur(8px); color: white;">
+    <div class="loader-content" style="text-align: center;">
+        <div class="loader-spinner" style="width: 48px; height: 48px; margin: 0 auto 22px; border: 3px solid rgba(255, 255, 255, .25); border-top-color: white; border-radius: 50%; animation: spin .8s linear infinite;"></div>
+        <p id="loadtext" style="font-size: 15px; font-weight: 700;">Gözləyin...</p>
+        <span style="display: block; color: #c0cec4; font-size: 11px; margin-top: 7px;">SmartFridge AI işləyir</span>
+    </div>
+</div>
+
+<header class="site-header">
+    <div class="nav-container">
+        <a href="/" class="brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="3" width="20" height="26" rx="4"/>
+                    <path d="M6 13h20M11 8v2M11 17v5"/>
+                </svg>
+            </span>
+            <span>SmartFridge<span class="brand-ai"> AI</span></span>
+        </a>
+        <nav class="nav-links">
+            {% if step == 'upload' %}
+                <a href="#how-it-works">Necə işləyir</a>
+                <a href="#features">Üstünlüklər</a>
+            {% else %}
+                <a href="/">Ana səhifə</a>
+            {% endif %}
+        </nav>
+        <a href="{% if step == 'upload' %}#upload{% else %}/{% endif %}" class="nav-cta">
+            {% if step == 'upload' %}Başla{% else %}Ana səhifə{% endif %}
+            <span>↗</span>
+        </a>
+    </div>
+</header>
+
+{% if step == 'upload' %}
+<main>
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Your fridge. <span>Your ingredients.</span> <em>Your next great meal.</em></h1>
+                <p class="hero-description">Soyuducundakı ərzaqları süni intellektlə tanı. Əlindəki məhsullara uyğun reseptlər yarat və qida israfını azalt.</p>
+                <div class="hero-actions">
+                    <a href="#upload" class="primary-link">İndi başla <span>→</span></a>
+                    <a href="#how-it-works" class="secondary-link">Necə işləyir?</a>
+                </div>
+            </div>
+
+            <div class="hero-visual" id="upload">
+                <div class="visual-glow"></div>
+                <div class="upload-card">
+                    <div class="upload-card-header">
+                        <div><span class="card-overline">SMART ANALYSIS</span><h2>Fridge scanner</h2></div>
+                        <span class="ai-status"><i></i> AI Ready</span>
+                    </div>
+                    {% if error %}<div class="error-message" role="alert" style="padding: 13px 16px; margin-bottom: 18px; border-radius: 8px; background: #fff0ed; color: #a64035; font-size: 12px; font-weight: bold;">{{ error }}</div>{% endif %}
+                    
+                    <form method="POST" action="/analyze" enctype="multipart/form-data" data-load="Şəkil analiz olunur...">
+    <input type="file" id="image" name="image" class="sr-only" accept="image/*,.heic,.heif,.avif" required>
+    <input type="file" id="camera" class="sr-only" accept="image/*" capture="environment">
+
+    <label class="upload-zone" for="image" id="drop">
+        <div class="upload-icon">
+            <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.7">
+                <rect x="14" y="5" width="36" height="54" rx="7"/>
+                <path d="M14 25h36M22 13v5M22 33v8"/>
+                <path d="M32 43v-10m0 0-5 5m5-5 5 5"/>
+            </svg>
+        </div>
+        <strong>Şəklini buraya əlavə et</strong>
+        <span class="upload-subtitle">Kliklə və ya şəkli buraya sürüklə</span>
+        <span class="upload-formats">JPG · PNG · WEBP · HEIC · AVIF</span>
+        <span id="fname" class="file-name"></span>
+        <img id="preview" alt="Seçilmiş şəklin önizləməsi">
+    </label>
+
+    <div class="camera-divider"><span>və ya</span></div>
+    <label class="camera-btn" for="camera">
+        <span class="camera-btn-icon">📷</span>
+        <span>Kamera ilə çək</span>
+    </label>
+
+    <div class="upload-security"><span>✦</span> AI şəkli analiz edərək ərzaqları müəyyənləşdirəcək.</div>
+    <button type="submit" class="main-button"><span>Ərzaqları müəyyən et</span><span class="button-arrow">→</span></button>
+</form>
+                    <div class="upload-bottom"><span>SMARTFRIDGE AI</span><span>INTELLIGENT FOOD TECHNOLOGY</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section video-section" id="demo">
+        <div class="section-heading">
+            <span class="section-label">DEMO</span>
+            <h2>Necə işlədiyini <em>1 dəqiqəyə gör.</em></h2>
+            <p>Şəkil yükləməkdən hazır resepti almağa qədər bütün proses.</p>
+        </div>
+        <div class="video-box">
+            <button type="button" class="video-poster" id="video-poster" data-src="{{ url_for('static', filename='promo.html') }}" aria-label="Demo videonu başlat">
+                <span class="video-play">▶</span>
+                <strong>Demo videonu izlə</strong>
+                <small>64 saniyə · səslə</small>
+            </button>
+        </div>
+        <div class="video-actions"><button type="button" class="video-full" id="video-full" hidden>⛶ Tam ekran</button></div>
+    </section>
+
+    <section class="brand-strip">
+        <div class="brand-strip-inner">
+            <span>SMARTER COOKING</span><i></i><span>AI INGREDIENT RECOGNITION</span><i></i>
+            <span>LESS FOOD WASTE</span><i></i><span>PERSONALIZED RECIPES</span>
+        </div>
+    </section>
+
+    <section class="section how-section" id="how-it-works">
+        <div class="section-heading">
+            <span class="section-label">THE PROCESS</span>
+            <h2>Mətbəxdə yeni bir <em>yanaşma.</em></h2>
+            <p>Bir neçə sadə addımla əlindəki ərzaqları dadlı yeməyə çevir.</p>
+        </div>
+        <div class="process-grid">
+            <article class="process-card">
+                <div class="process-top"><span class="process-number">01</span><span class="process-icon">↗</span></div>
+                <div class="process-illustration illustration-one">▧</div>
+                <h3>Şəkilini yüklə</h3>
+                <p>Soyuducunun və ya ərzaqlarının şəklini əlavə et. AI görüntünü analiz etməyə başlasın.</p>
+            </article>
+            <article class="process-card featured-process">
+                <div class="process-top"><span class="process-number">02</span><span class="process-icon">✦</span></div>
+                <div class="process-illustration illustration-two">✧</div>
+                <h3>Ərzaqları təsdiqlə</h3>
+                <p>AI tərəfindən müəyyən edilən məhsulları yoxla, çatışmayanları əlavə et və tarixlərini qeyd et.</p>
+            </article>
+            <article class="process-card">
+                <div class="process-top"><span class="process-number">03</span><span class="process-icon">→</span></div>
+                <div class="process-illustration illustration-three">♨</div>
+                <h3>Reseptini yarat</h3>
+                <p>Yemək növünü və porsiyanı seç. Sənə uyğun reseptini addım-addım əldə et.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="features-section" id="features">
+        <div class="features-container">
+            <div class="features-intro">
+                <span class="section-label">WHY SMARTFRIDGE?</span>
+                <h2>Mətbəxində <em>hər şeyin</em> bir mənası var.</h2>
+                <p>SmartFridge AI gündəlik yemək seçimlərini asanlaşdırır, ərzaqlarını daha səmərəli istifadə etməyə kömək edir.</p>
+            </div>
+            <div class="feature-list">
+                <article class="feature-item"><span class="feature-icon">✦</span><div><h3>AI ilə ərzaq tanıma</h3><p>Şəkildəki məhsulları avtomatik müəyyən et, nəticələri özün təsdiqlə.</p></div><span class="feature-index">01</span></article>
+                <article class="feature-item"><span class="feature-icon">◷</span><div><h3>Son istifadə tarixi</h3><p>Vaxtı yaxınlaşan məhsulları önə çək, vaxtı keçmiş məhsullar üçün xəbərdarlıq al.</p></div><span class="feature-index">02</span></article>
+                <article class="feature-item"><span class="feature-icon">♨</span><div><h3>Ağıllı resept generatoru</h3><p>Əlindəki məhsullara, yemək növünə və porsiya sayına uyğun reseptlər yarat.</p></div><span class="feature-index">03</span></article>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div class="cta-content">
+            <span class="section-label">A BETTER WAY TO COOK</span>
+            <h2>Əlindəkilərlə daha <em>çoxunu yarat.</em></h2>
+            <p>Növbəti yeməyin üçün ilham axtarmağa ehtiyac yoxdur. SmartFridge AI ilə başla.</p>
+            <a href="#upload" class="cta-button">İlk reseptini yarat <span style="font-size: 16px;">→</span></a>
+        </div>
+    </section>
+</main>
+
+{% else %}
+<main class="workspace">
+    <div class="workspace-top">
+        <a href="/" class="back-link">← Ana səhifəyə qayıt</a>
+        <div class="workspace-brand"><span class="workspace-brand-dot"></span>SMARTFRIDGE AI WORKSPACE</div>
+    </div>
+
+    <div class="progress-wrapper">
+        <div class="progress-step {% if step in ['choose', 'recipe'] %}completed{% endif %}">
+            <span>01</span><div><strong>Şəkil analizi</strong><small>Ərzaqların tanınması</small></div>
+        </div>
+        <div class="progress-line {% if step == 'recipe' %}completed{% endif %}"></div>
+        <div class="progress-step {% if step == 'choose' %}active{% elif step == 'recipe' %}completed{% endif %}">
+            <span>02</span><div><strong>Məhsul seçimi</strong><small>Ərzaqları təsdiqlə</small></div>
+        </div>
+        <div class="progress-line {% if step == 'recipe' %}completed{% endif %}"></div>
+        <div class="progress-step {% if step == 'recipe' %}active{% endif %}">
+            <span>03</span><div><strong>Resept</strong><small>Yeməyini hazırla</small></div>
+        </div>
+    </div>
+
+    <div class="workspace-card">
+        {% if error %}<div class="error-message" role="alert" style="padding: 13px 16px; margin-bottom: 18px; border-radius: 8px; background: #fff0ed; color: #a64035; font-size: 12px; font-weight: bold;">{{ error }}</div>{% endif %}
+
+        {% if step == 'choose' %}
+        <div class="workspace-heading">
+            <span class="section-label">STEP 02 · INGREDIENTS</span>
+            <h1>Ərzaqlarını <em>təsdiqlə.</em></h1>
+            <p>AI tərəfindən tapılan məhsulları yoxla. İstifadə etmək istədiklərini seç və reseptini fərdiləşdir.</p>
+        </div>
+
+        <form id="choose-form" method="POST" action="/recipe" data-load="Aşpaz resept hazırlayır...">
+            
+            {% if ingredients %}
+            <div class="ingredient-section" style="margin-bottom: 30px;">
+                <div class="field-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <h2 style="color: var(--green-dark); font-size: 18px; font-weight: 800;">Tanıdığımız məhsullar</h2>
+                        <p style="color: var(--muted); font-size: 12px;">İstifadə etmək istədiklərini seç.</p>
+                    </div>
+                    <span style="padding: 6px 12px; background: #edf4ed; color: #55745e; border-radius: 20px; font-size: 11px; font-weight: 800;">{{ ingredients|length }} məhsul</span>
+                </div>
+                <div class="ingredient-grid">
+                    {% for item in ingredients %}
+                        {{ chip(item, true) }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if unsure %}
+            <div class="ingredient-section unsure-section" style="background: #fffdf5; padding: 25px; border-radius: 12px; border: 1px dashed #e6d8b3; margin-bottom: 30px;">
+                <div class="field-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <h2 style="color: #9a7950; font-size: 18px; font-weight: 800;">Əmin olmadığımız məhsullar</h2>
+                        <p style="color: #b89f7d; font-size: 12px;">Şəkildə dəqiq seçə bilmədik. Soyuducunda varsa, toxunub seç.</p>
+                    </div>
+                    <span style="padding: 6px 12px; background: #fbf3e7; color: #9a7950; border-radius: 20px; font-size: 11px; font-weight: 800;">Yoxlanılmalıdır</span>
+                </div>
+                <div class="ingredient-grid">
+                    {% for item in unsure %}
+                        <div class="ingredient-item" style="display: inline-flex; align-items: center; padding: 8px 15px; background: white; border: 1px solid #f0e3ca; border-radius: 30px; margin: 5px;">
+                            <label class="ingredient-chip" style="display: flex; align-items: center; gap: 8px; color: #9a7950; font-size: 13px; font-weight: 700; cursor: pointer;">
+                                <input type="checkbox" name="ingredients" value="{{ item }}" style="accent-color: #9a7950; width: 15px; height: 15px;">
+                                <span>{{ item }}</span>
+                            </label>
+                            <input type="hidden" name="all_ingredients" value="{{ item }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="height: 1px; background: var(--border); margin: 35px 0;"></div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+                <div>
+                    <h3 style="color: var(--green-dark); font-size: 16px; font-weight: 800; margin-bottom: 5px;">Özün əlavə et</h3>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 20px;">Ərzaq siyahısında olmayan məhsulları yaz.</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 130px;">
+                            <label style="display: block; font-size: 11px; color: var(--muted); font-weight: bold; margin-bottom: 7px;">Məhsulun adı</label>
+                            <input type="text" id="new-name" placeholder="" style="width: 100%; padding: 12px 15px; border: 1px solid #e0e7df; border-radius: 8px; background: #fbfcfa; outline: none; font-size: 14px; font-weight: 500; transition: border-color 0.2s;" onfocus="this.style.borderColor='#8eaa94'" onblur="this.style.borderColor='#e0e7df'">
+                        </div>
+                        <div style="flex: 1; min-width: 130px;">
+                            <label style="display: block; font-size: 11px; color: var(--muted); font-weight: bold; margin-bottom: 7px;">Son istifadə tarixi</label>
+                            <input type="date" id="new-date" style="width: 100%; padding: 12px 15px; border: 1px solid #e0e7df; border-radius: 8px; background: #fbfcfa; outline: none; font-family: inherit; font-size: 14px; font-weight: 500; transition: border-color 0.2s;" onfocus="this.style.borderColor='#8eaa94'" onblur="this.style.borderColor='#e0e7df'">
+                        </div>
+                    </div>
+                    <button type="button" id="add-btn" class="main-button" style="width: auto; padding: 0 25px; height: 46px; margin-top: 15px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">Əlavə et</button>
+                    <div id="added" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;" hidden></div>
+                </div>
+
+                <div>
+                    <h3 style="color: var(--green-dark); font-size: 16px; font-weight: 800; margin-bottom: 5px;">Vaxtı yaxınlaşan məhsul var?</h3>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 20px;">Mövcud məhsulu seçib tarixini yaz.</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 130px;">
+                            <label style="display: block; font-size: 11px; color: var(--muted); font-weight: bold; margin-bottom: 7px;">Məhsulu seç</label>
+                            <select id="exp-name" style="width: 100%; padding: 12px 15px; border: 1px solid #e0e7df; border-radius: 8px; background: #fbfcfa; outline: none; appearance: auto; cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; transition: border-color 0.2s;" onfocus="this.style.borderColor='#8eaa94'" onblur="this.style.borderColor='#e0e7df'"></select>
+                        </div>
+                        <div style="flex: 1; min-width: 130px;">
+                            <label style="display: block; font-size: 11px; color: var(--muted); font-weight: bold; margin-bottom: 7px;">Son istifadə tarixi</label>
+                            <input type="date" id="exp-date" style="width: 100%; padding: 12px 15px; border: 1px solid #e0e7df; border-radius: 8px; background: #fbfcfa; outline: none; font-family: inherit; font-size: 14px; font-weight: 500; transition: border-color 0.2s;" onfocus="this.style.borderColor='#8eaa94'" onblur="this.style.borderColor='#e0e7df'">
+                        </div>
+                    </div>
+                    <button type="button" id="exp-btn" class="main-button" style="width: auto; padding: 0 25px; height: 46px; margin-top: 15px; background: white; color: var(--green); border: 1px solid #c0d1c3; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">Tarix əlavə et</button>
+                    <div id="exp-tags" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
+                    <div id="exp-fields"></div>
+                </div>
+            </div>
+
+            <div style="height: 1px; background: var(--border); margin: 35px 0;"></div>
+
+            <!-- SIMMETRİK YEMƏK NÖVLƏRİ SEÇİMİ (3x2 Grid) -->
+            <div class="form-field" style="margin-bottom: 30px;">
+                <label style="display: block; color: var(--green-dark); font-size: 17px; font-weight: 800; margin-bottom: 5px;">Hansı növ yemək istəyirsən?</label>
+                <p style="color: var(--muted); font-size: 12px; margin-bottom: 20px;">Əhvalına və vaxtına uyğun seçim et.</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    {% for key, m in meals.items() %}
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="meal" value="{{ key }}" {% if key == selected_meal %}checked{% endif %} style="position: absolute; opacity: 0; pointer-events: none;">
+                        <span style="display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: #fbfcfa; transition: .2s; height: 100%;">
+                            <span style="font-size: 24px; margin-bottom: 10px;">{{ m[0] }}</span>
+                            <strong style="color: var(--green-dark); font-size: 14px; font-weight: 800; margin-bottom: 5px;">{{ m[1] }}</strong>
+                            <small style="color: var(--muted); font-size: 11px;">{{ m[2] }}</small>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <style>
+                input[type="radio"]:checked + span { background: #edf4ed !important; border: 1.5px solid var(--green) !important; }
+                input[type="radio"] + span:hover { border-color: #a4bba7; transform: translateY(-2px); }
+                @media (max-width: 768px) {
+                    .workspace-card form div[style*="grid-template-columns: repeat(3, 1fr)"] {
+                        grid-template-columns: repeat(2, 1fr) !important;
+                    }
+                }
+            </style>
+
+            <div style="height: 1px; background: var(--border); margin: 35px 0;"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 30px;">
+                <div>
+                    <label style="display: block; color: var(--green-dark); font-size: 16px; font-weight: 800; margin-bottom: 5px;">Porsiya sayı</label>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 15px;">Neçə nəfər üçün hazırlayırsan?</p>
+                    <div style="display: flex; align-items: center; border: 1px solid #e0e7df; border-radius: 8px; overflow: hidden; width: max-content;">
+                        <button type="button" data-step="-1" style="width: 45px; height: 45px; border: none; background: #f8faf6; color: var(--green); font-size: 22px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#edf4ed'" onmouseout="this.style.background='#f8faf6'">−</button>
+                        <input type="number" id="servings" name="servings" value="2" min="1" max="15" required style="width: 60px; height: 45px; border: none; border-left: 1px solid #e0e7df; border-right: 1px solid #e0e7df; text-align: center; border-radius: 0; outline: none; font-weight: 800; font-size: 16px; color: var(--green-dark);">
+                        <button type="button" data-step="1" style="width: 45px; height: 45px; border: none; background: #f8faf6; color: var(--green); font-size: 22px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#edf4ed'" onmouseout="this.style.background='#f8faf6'">+</button>
+                    </div>
+                </div>
+                
+                <label style="display: flex; align-items: center; gap: 15px; cursor: pointer; background: #fafaf7; padding: 15px 20px; border-radius: 12px; border: 1px solid #eef2ed; transition: 0.2s;" onmouseover="this.style.borderColor='#dce8dc'" onmouseout="this.style.borderColor='#eef2ed'">
+                    <input type="checkbox" name="allow_extra" style="width: 20px; height: 20px; accent-color: var(--green);">
+                    <span>
+                        <strong style="display: block; color: var(--green-dark); font-size: 14px; font-weight: 800; margin-bottom: 3px;">Əlavə məhsullara icazə ver</strong>
+                        <small style="display: block; color: var(--muted); font-size: 11px;">Lazım olsa, 1-2 sadə ərzaq da əlavə edilsin.</small>
+                    </span>
+                </label>
+            </div>
+
+            <button type="submit" class="main-button recipe-submit" style="margin-top: 40px; height: 55px; font-size: 15px; font-weight: 800;"><span>Reseptimi yarat</span><span class="button-arrow">→</span></button>
+        </form>
+        <div style="text-align: center; margin-top: 25px;">
+            <a href="/scanner" style="color: #78867d; font-size: 13px; font-weight: bold; text-decoration: underline; transition: color 0.2s;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='#78867d'">← Başqa şəkil yüklə</a>
+        </div>
+
+        {% elif step == 'recipe' %}
+        <div class="recipe-heading" style="padding-bottom: 30px; border-bottom: 1px solid var(--border);">
+            <span class="section-label">YOUR PERSONALIZED RECIPE</span>
+            <p class="recipe-category" style="color: var(--accent); font-size: 12px; font-weight: 800; margin-top: 20px;">{{ meal[0] }} {{ meal[1] }}</p>
+            <h1 style="font-size: clamp(32px, 4vw, 48px); font-weight: 800; margin: 7px 0 12px; color: var(--green-dark);">{{ data.title }}</h1>
+            <p class="recipe-intro" style="color: var(--muted); font-size: 13px; line-height: 1.9;">{{ data.intro }}</p>
+            <div class="recipe-badges" style="display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px;">
+                {% if data.time %}<span style="padding: 7px 12px; background: #edf4ed; color: var(--green-dark); border-radius: 30px; font-size: 11px; font-weight: 800;">◷ {{ data.time }}</span>{% endif %}
+                {% if data.difficulty %}<span style="padding: 7px 12px; background: #edf4ed; color: var(--green-dark); border-radius: 30px; font-size: 11px; font-weight: 800;">✦ {{ data.difficulty }}</span>{% endif %}
+                {% if data.servings %}<span style="padding: 7px 12px; background: #edf4ed; color: var(--green-dark); border-radius: 30px; font-size: 11px; font-weight: 800;">♧ {{ data.servings }}</span>{% endif %}
+            </div>
+        </div>
+
+        {% if data.used_expiring %}
+        <div class="expiry-success" style="display: flex; gap: 13px; padding: 16px 18px; border-radius: 9px; margin-top: 20px; background: #edf6eb; color: #52714f;">
+            <span style="font-size: 18px; font-weight: bold;">✓</span>
+            <div>
+                <strong style="font-size: 13px; font-weight: 800;">Vaxtı yaxınlaşan məhsullar istifadə edildi</strong>
+                <p style="font-size: 12px; margin-top: 4px;">{{ data.used_expiring | join(', ') }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if expired %}
+        <div class="expiry-warning" style="display: block; padding: 16px 18px; border-radius: 9px; margin-top: 20px; background: #fff1eb; color: #a35743;">
+            <strong style="font-size: 13px; font-weight: 800;">🚫 Diqqət: son istifadə tarixi keçib</strong>
+            <p style="font-size: 12px; margin-top: 6px;">{{ expired | join(', ') }} reseptə əlavə edilmədi. Bu məhsullardan istifadə etməyin.</p>
+        </div>
+        {% endif %}
+
+        <div class="recipe-layout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 45px; margin-top: 40px;">
+            <section class="recipe-ingredients">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <span style="color: var(--accent); font-size: 11px; font-weight: 800;">01</span>
+                    <h2 style="color: var(--green-dark); font-family: 'Manrope', sans-serif; font-size: 19px; font-weight: 800;">Lazım olanlar</h2>
+                </div>
+                <ul style="list-style: none;">
+                    {% for i in data.ingredients %}
+                        {% if i is mapping %}
+                            <li style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #edf0eb; font-size: 13px;">
+                                <span style="color: #6d9470; font-weight: 800;">✓</span>
+                                <span style="flex: 1; color: #64746a; font-weight: 500;">{{ i.name }}</span>
+                                <strong style="color: var(--green-dark); font-size: 12px; font-weight: 800;">{{ i.amount }}</strong>
+                            </li>
+                        {% else %}
+                            <li style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #edf0eb; font-size: 13px;">
+                                <span style="color: #6d9470; font-weight: 800;">✓</span>
+                                <span style="flex: 1; color: #64746a; font-weight: 500;">{{ i }}</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="recipe-steps">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <span style="color: var(--accent); font-size: 11px; font-weight: 800;">02</span>
+                    <h2 style="color: var(--green-dark); font-family: 'Manrope', sans-serif; font-size: 19px; font-weight: 800;">Hazırlanma qaydası</h2>
+                </div>
+                <ol style="list-style: none;">
+                    {% for s in data.steps %}
+                    <li style="display: flex; align-items: flex-start; gap: 15px; padding: 0 0 20px; margin-bottom: 17px; border-bottom: 1px solid #edf0eb;">
+                        <span style="flex: 0 0 27px; width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; background: #edf4ed; color: var(--green-dark); font-size: 11px; font-weight: 800;">{{ loop.index }}</span>
+                        <p style="color: #66766c; font-size: 13px; line-height: 1.85; margin: 0; font-weight: 500;">{{ s }}</p>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </section>
+        </div>
+
+        {% if data.tip %}
+        <div class="chef-tip" style="display: flex; gap: 15px; padding: 20px; margin-top: 30px; background: #f7f3e9; border-radius: 12px; color: #81704a;">
+            <span style="color: #bd8a5d; font-size: 22px;">💡</span>
+            <div>
+                <strong style="font-size: 14px; font-weight: 800;">Aşpazın məsləhəti</strong>
+                <p style="font-size: 12px; line-height: 1.8; margin-top: 5px; font-weight: 500;">{{ data.tip }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-divider" style="height: 1px; background: var(--border); margin: 50px 0;"></div>
+        
+        <!-- VS Code-un xəta verməməsi üçün məlumatı burada JSON kimi saxlayırıq -->
+        <script id="recipe-data" type="application/json">
+            {{ data | tojson | safe }}
+        </script>
+
+        <div class="chat-wrapper">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <span style="color: var(--accent); font-size: 11px; font-weight: 800;">03</span>
+                <h2 style="color: var(--green-dark); font-family: 'Manrope', sans-serif; font-size: 20px; font-weight: 800;">Süni intellekt aşpazla söhbət</h2>
+            </div>
+            <p style="color: var(--muted); font-size: 13px; margin-bottom: 25px; line-height: 1.8;">
+                Resept barədə sualın var? Məsələn: "Bu yeməyi sobada bişirə bilərəm?", "Qatıq əvəzinə nə istifadə edim?" və ya "Daha acı necə edə bilərəm?"
+            </p>
+
+            <div id="chat-box" style="border: 1px solid #e0e7df; border-radius: 12px; height: 380px; overflow-y: auto; padding: 25px; background: #fbfcfa; display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; scroll-behavior: smooth;">
+                <div style="text-align: center; color: #a1aaa2; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-top: 20px;">Söhbətə başlamaq üçün aşağıya mesaj yazın.</div>
+            </div>
+
+            <div style="display: flex; gap: 15px; align-items: stretch;">
+                <input type="text" id="chat-input" placeholder="Sualınızı bura yazın..." style="flex: 1; padding: 16px 20px; border: 1px solid #e0e7df; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 500; outline: none; background: #fbfcfa; transition: 0.2s;" onkeypress="handleKeyPress(event)" onfocus="this.style.borderColor='#8eaa94'" onblur="this.style.borderColor='#e0e7df'">
+                <button type="button" class="main-button" onclick="sendMessage()" style="width: auto; padding: 0 35px; margin: 0; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: 800;">
+                    Göndər
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="/scanner" class="main-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 15px; padding: 18px 30px; border-radius: 8px; background: var(--green); color: white; font-size: 14px; font-weight: 800; width: auto; min-width: 250px;">
+                <span>Yeni resept yarat</span>
+                <span style="font-size: 18px;">→</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</main>
+{% endif %}
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <a href="/" class="brand footer-brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="3" width="20" height="26" rx="4"/>
+                    <path d="M6 13h20M11 8v2M11 17v5"/>
+                </svg>
+            </span>
+            <span>SmartFridge<span class="brand-ai"> AI</span></span>
+        </a>
+        <p>Smart technology. Smarter cooking. Less waste.</p>
+        <span class="footer-copy">© 2026 SmartFridge AI</span>
+    </div>
+</footer>
+
+<script>
+    const input = document.getElementById('image');
+    const drop = document.getElementById('drop');
+    const camera = document.getElementById('camera');
+if (camera && input) {
+    camera.addEventListener('change', () => {
+        if (!camera.files.length) return;
+        input.files = camera.files;
+        showFile();
+    });
+}
+    
+    function showFile() {
+        if (!input || !input.files.length) return;
+        const file = input.files[0];
+        document.getElementById('fname').textContent = file.name;
+        const preview = document.getElementById('preview');
+        
+        if (file.type && file.type.startsWith('image/') && !/heic|heif|avif/i.test(file.type)) {
+            if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+            const objectUrl = URL.createObjectURL(file);
+            preview.src = objectUrl;
+            preview.dataset.objectUrl = objectUrl;
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+    
+    if (input && drop) {
+        input.addEventListener('change', showFile);
+        ['dragenter', 'dragover'].forEach(eventName => drop.addEventListener(eventName, event => { event.preventDefault(); drop.classList.add('drag-active'); }));
+        ['dragleave', 'drop'].forEach(eventName => drop.addEventListener(eventName, event => { event.preventDefault(); drop.classList.remove('drag-active'); }));
+        drop.addEventListener('drop', event => { if (event.dataTransfer.files.length) { input.files = event.dataTransfer.files; showFile(); } });
+    }
+
+    document.querySelectorAll('form[data-load]').forEach(f => {
+        f.addEventListener('submit', event => {
+            if (!f.checkValidity()) return;
+            const loader = document.getElementById('loader');
+            const loadText = document.getElementById('loadtext');
+            if (loader && loadText) { loadText.textContent = f.dataset.load; loader.style.display = 'flex'; }
+        });
+    });
+
+    const vp = document.getElementById('video-poster');
+    if (vp) {
+        vp.addEventListener('click', () => {
+            const f = document.createElement('iframe');
+            f.src = vp.dataset.src;
+            f.allow = 'autoplay; fullscreen';
+            f.allowFullscreen = true;
+            f.title = 'SmartFridge AI demo';
+            vp.replaceWith(f);
+            
+            const b = document.getElementById('video-full');
+            b.hidden = false;
+            b.onclick = () => {
+                const box = f.parentElement;
+                if (box.requestFullscreen) box.requestFullscreen();
+                else if (f.requestFullscreen) f.requestFullscreen();
+            };
+        });
+    }
+
+    const form = document.getElementById('choose-form');
+    if (form) {
+        const $ = id => document.getElementById(id);
+        const expiries = {}; 
+
+        const getCheckedNames = () => {
+            return [...form.querySelectorAll('input[type="checkbox"][name="ingredients"]:checked')].map(i => i.value);
+        };
+        
+        const findName = n => getCheckedNames().find(x => x.toLowerCase() === n.toLowerCase());
+
+        function refreshSelect() {
+            const sel = $('exp-name');
+            if(!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '';
+            
+            const checkedItems = getCheckedNames();
+            checkedItems.forEach(n => {
+                const o = document.createElement('option');
+                o.value = n; o.textContent = n; sel.appendChild(o);
+            });
+            
+            if (prev && findName(prev)) sel.value = findName(prev);
+        }
+
+        const fmt = d => { const [y, m, dd] = d.split('-'); return dd + '.' + m + '.' + y; };
+
+        function renderExpiry() {
+            const tags = $('exp-tags'), fields = $('exp-fields');
+            tags.innerHTML = ''; fields.innerHTML = '';
+            Object.entries(expiries).forEach(([name, date]) => {
+                const t = document.createElement('span');
+                t.style.cssText = "display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #fff1eb; color: #a35743; border-radius: 20px; font-size: 12px; font-weight: 800;";
+                t.textContent = name + ': ' + fmt(date);
+                
+                const x = document.createElement('button');
+                x.type = 'button'; 
+                x.textContent = '×';
+                x.style.cssText = "background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; line-height: 1;";
+                x.onclick = () => { delete expiries[name]; renderExpiry(); };
+                
+                t.appendChild(x); tags.appendChild(t);
+                
+                const h = document.createElement('input');
+                h.type = 'hidden'; h.name = 'exp::' + name; h.value = date; fields.appendChild(h);
+            });
+        }
+
+        function setExpiry(name, date) {
+            if (!name || !date) return;
+            expiries[findName(name) || name] = date;
+            renderExpiry();
+        }
+
+        function makeChip(name) {
+            const wrap = document.createElement('div'); wrap.className = 'ingredient-item';
+            wrap.style.cssText = "display: inline-flex; align-items: center; padding: 8px 15px; background: #edf4ed; border: 1px solid #dce8dc; border-radius: 30px; margin: 5px;";
+            
+            const label = document.createElement('label'); label.className = 'ingredient-chip';
+            label.style.cssText = "display: flex; align-items: center; gap: 8px; color: var(--green-dark); font-size: 13px; font-weight: 700; cursor: pointer;";
+            
+            const cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.name = 'ingredients'; cb.value = name; cb.checked = true;
+            cb.style.cssText = "accent-color: var(--green); width: 15px; height: 15px;";
+            
+            const sp = document.createElement('span'); sp.textContent = name;
+            label.append(cb, sp);
+            
+            const hid = document.createElement('input'); hid.type = 'hidden'; hid.name = 'all_ingredients'; hid.value = name;
+            wrap.append(label, hid);
+            return wrap;
+        }
+
+        function addProduct() {
+            const nameEl = $('new-name'), dateEl = $('new-date');
+            if(!nameEl) return;
+            const name = nameEl.value.trim();
+            if (!name) { nameEl.focus(); return; }
+            
+            const allBoxes = [...form.querySelectorAll('input[type="checkbox"][name="ingredients"]')];
+            const existingBox = allBoxes.find(i => i.value.toLowerCase() === name.toLowerCase());
+            
+            if (existingBox) {
+                existingBox.checked = true;
+            } else {
+                $('added').appendChild(makeChip(name));
+                $('added').hidden = false;
+            }
+            
+            refreshSelect();
+            if (dateEl.value) setExpiry(name, dateEl.value);
+            
+            nameEl.value = ''; dateEl.value = '';
+            nameEl.focus();
+        }
+
+        form.addEventListener('change', e => {
+            if(e.target.type === 'checkbox' && e.target.name === 'ingredients') {
+                if (!e.target.checked && expiries[e.target.value]) {
+                    delete expiries[e.target.value];
+                    renderExpiry();
+                }
+                refreshSelect();
+            }
+        });
+
+        if($('add-btn')) $('add-btn').addEventListener('click', addProduct);
+        
+        if($('exp-btn')) {
+            $('exp-btn').addEventListener('click', () => {
+                const n = $('exp-name').value, d = $('exp-date').value;
+                if (!n) return;
+                if (!d) { $('exp-date').focus(); return; }
+                setExpiry(n, d); 
+                $('exp-date').value = '';
+            });
+        }
+
+        form.addEventListener('keydown', e => {
+            if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+            e.preventDefault();
+            if (e.target.id === 'new-name') addProduct();
+        });
+
+        form.querySelectorAll('button[data-step]').forEach(b => {
+            b.addEventListener('click', () => {
+                const inp = $('servings');
+                inp.value = Math.min(15, Math.max(1, (parseInt(inp.value) || 2) + parseInt(b.dataset.step)));
+            });
+        });
+
+        refreshSelect();
+    }
+
+    function addBubble(text, css, id) {
+        const box = document.getElementById("chat-box");
+        const d = document.createElement("div");
+        if (id) d.id = id;
+        d.style.cssText = css + "; white-space: pre-wrap; word-break: break-word;";
+        d.textContent = text;
+        box.appendChild(d);
+        box.scrollTop = box.scrollHeight;
+        return d;
+    }
+
+    window.addEventListener('pageshow', e => {
+        const l = document.getElementById('loader');
+        if (l && e.persisted) l.style.display = 'none';
+    });
+
+    let chatHistory = [];
+    function handleKeyPress(event) { if (event.key === "Enter") { event.preventDefault(); sendMessage(); } }
+    
+    async function sendMessage() {
+        const inputField = document.getElementById("chat-input");
+        const chatBox = document.getElementById("chat-box");
+        if (!inputField || !chatBox) return;
+        
+        const userMessage = inputField.value.trim();
+        if (!userMessage) return;
+
+        addBubble(userMessage, "align-self: flex-end; background: var(--green); color: white; padding: 14px 18px; border-radius: 12px 12px 0 12px; max-width: 80%; font-size: 13.5px; font-weight: 500; line-height: 1.6; box-shadow: 0 4px 15px rgba(23,61,50,0.15)");
+        inputField.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+        chatHistory.push({ role: "user", content: userMessage });
+
+        const typingId = "typing-" + Date.now();
+        addBubble("Aşpaz yazır...", "align-self: flex-start; background: #edf4ed; color: #54775d; padding: 14px 18px; border-radius: 12px 12px 12px 0; max-width: 80%; font-size: 13.5px; font-style: italic; font-weight: 700", typingId);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            // Məlumatı HTML-dən təmiz JavaScript ilə oxuyuruq
+            let currentRecipeInfo = "";
+            const recipeDataScript = document.getElementById("recipe-data");
+            
+            if (recipeDataScript) {
+                const recipeData = JSON.parse(recipeDataScript.textContent);
+                currentRecipeInfo = `Resept adı: ${recipeData.title}. Tərkibi: ${JSON.stringify(recipeData.ingredients)}. Hazırlanma addımları: ${JSON.stringify(recipeData.steps)}`;
+            }
+
+            const response = await fetch("/chat", { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ 
+                    messages: chatHistory,
+                    recipe_context: currentRecipeInfo
+                }) 
+            });
+            const data = await response.json();
+            document.getElementById(typingId).remove();
+            
+            if (data.reply) {
+                addBubble("👨‍🍳 " + data.reply, "align-self: flex-start; background: white; border: 1px solid #e0e7df; color: var(--text); padding: 14px 18px; border-radius: 12px 12px 12px 0; max-width: 80%; font-size: 13.5px; font-weight: 500; line-height: 1.7; box-shadow: 0 4px 12px rgba(23,61,50,0.04)");
+                chatHistory.push({ role: "assistant", content: data.reply });
+            } else {
+                addBubble("Xəta: Cavab alına bilmədi.", "color: #a64035; align-self: center; font-size: 12px; font-weight: bold; margin-top: 10px");
+            }
+        } catch (error) {
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+                addBubble("Bağlantı xətası. İnternetinizi yoxlayın.", "color: #a64035; align-self: center; font-size: 12px; font-weight: bold; margin-top: 10px");
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
